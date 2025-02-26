@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  pump-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pump-monitor
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - pump-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  pump-network:
+    driver: bridge
