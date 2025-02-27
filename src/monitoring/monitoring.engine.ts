@@ -5,14 +5,7 @@ import { TelegramService } from '../services/telegram.service';
 import { SupabaseService } from '../services/supabase.service';
 import { config } from '../config';
 import { logger, logError } from '../utils/logger';
-import { 
-  Token, 
-  TokenData, 
-  TokenDetails, 
-  TokenQueryOptions,
-  DevWalletData,
-  ACHIEVEMENT_MULTIPLIERS
-} from '../types';
+import { ACHIEVEMENT_MULTIPLIERS } from '../types';
 
 /**
  * Main monitoring engine that orchestrates the services
@@ -198,7 +191,7 @@ export class MonitoringEngine {
         for (const token of newTokens) {
           try {
             // Store token in database
-            const storedToken = await this.supabaseService.insertToken(token);
+            await this.supabaseService.insertToken(token);
             
             // Send notification
             await this.telegramService.sendNewTokenAlert(token);
@@ -289,7 +282,7 @@ export class MonitoringEngine {
           // Calculate current multiplier
           const multiplier = tokenDetails.marketCap / token.initial_market_cap;
           
-          logger.debug(`${token.symbol} - Initial MC: ${token.initial_market_cap.toLocaleString()}, Current MC: ${tokenDetails.marketCap.toLocaleString()}, Multiplier: ${multiplier.toFixed(2)}x`);
+          logger.debug(`${token.symbol} - Initial MC: $${token.initial_market_cap.toLocaleString()}, Current MC: $${tokenDetails.marketCap.toLocaleString()}, Multiplier: ${multiplier.toFixed(2)}x`);
           
           // Check for new achievements
           const newAchievements: number[] = [];
@@ -302,6 +295,7 @@ export class MonitoringEngine {
               await this.supabaseService.recordAchievement({
                 token_address: token.address,
                 multiplier: targetMultiplier,
+                achieved_at: new Date().toISOString(),
                 price_at_achievement: tokenDetails.price,
                 market_cap_at_achievement: tokenDetails.marketCap
               });
