@@ -3,14 +3,14 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { config } from '../config';
 import { logger, logError } from '../utils/logger';
-import { Token, TokenDetails, Achievement, ACHIEVEMENT_MULTIPLIERS } from '../types';
+import { Token, TokenDetails } from '../types';
 
 /**
  * Service for interacting with the Telegram Bot API
  * Handles message formatting, queuing, and command processing
  */
 export class TelegramService {
-  private bot: TelegramBot;
+  private bot!: TelegramBot;
   private messageQueue: Promise<void> = Promise.resolve();
   private isInitialized = false;
   
@@ -59,9 +59,9 @@ export class TelegramService {
 
 I monitor Solana token listings on Raydium DEX in real-time.
 You'll receive alerts for:
-• New token listings 
-• Market cap achievements (1.1x to 100x)
-• Developer wallet analysis
+- New token listings 
+- Market cap achievements (1.1x to 100x)
+- Developer wallet analysis
 
 Use /help to see available commands.
       `);
@@ -109,7 +109,7 @@ Use /help to see available commands.
     
     this.bot.on('polling_error', (error) => {
       // Don't log ETIMEDOUT or EHOSTUNREACH as it's common and not critical
-      if (error.code !== 'ETIMEDOUT' && error.code !== 'EHOSTUNREACH') {
+      if ((error as any).code !== 'ETIMEDOUT' && (error as any).code !== 'EHOSTUNREACH') {
         logError('Telegram polling error:', error);
       }
     });
@@ -221,8 +221,8 @@ This developer has created *${tokenCount} tokens*:
 ▶️ \`${address}\`
 
 *Latest token:* ${newToken.name} (${newToken.symbol})
-💰 *Price:* ${newToken.price.toFixed(12)}
-💵 *Market Cap:* ${newToken.marketCap.toLocaleString()}
+💰 *Price:* $${newToken.price.toFixed(12)}
+💵 *Market Cap:* $${newToken.marketCap.toLocaleString()}
 ⏱ *Created:* ${new Date(newToken.createdAt).toLocaleString()}
 
 ${tokenCount > 5 ? '⚠️ *Use caution when trading tokens from this developer.*' : ''}
@@ -244,8 +244,8 @@ ${tokenCount > 5 ? '⚠️ *Use caution when trading tokens from this developer.
     const liquidity = token.liquidity?.usd || 0;
     
     return `${index}. *${token.baseToken.symbol}* - ${token.baseToken.name}
-💰 MC: ${marketCap.toLocaleString()}
-💧 Liq: ${liquidity.toLocaleString()}
+💰 MC: $${marketCap.toLocaleString()}
+💧 Liq: $${liquidity.toLocaleString()}
 📅 Listed: ${new Date(token.pairCreatedAt).toLocaleString()}`;
   }
   
@@ -350,7 +350,7 @@ ${tokenCount > 5 ? '⚠️ *Use caution when trading tokens from this developer.
               });
               await new Promise(resolve => setTimeout(resolve, config.telegram.messageDelay));
             } catch (chunkError) {
-              logError(`Failed to send message chunk: ${chunkError}`);
+              logError('Failed to send message chunk:', chunkError as Error);
             }
           }
         } else {
@@ -397,3 +397,4 @@ ${tokenCount > 5 ? '⚠️ *Use caution when trading tokens from this developer.
     this.isInitialized = false;
     logger.info('Telegram service shutdown complete');
   }
+}
